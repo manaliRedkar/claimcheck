@@ -12,17 +12,29 @@ class LLMService:
             base_url="https://openrouter.ai/api/v1",
             api_key=os.getenv("OPENROUTER_API_KEY"),
         )
-
-    def chat(self):
+    def chat(self, prompt: str) -> str:
         response = self.client.chat.completions.create(
-        model="openai/gpt-4o-mini",
-        messages=[
-            {
-                "role": "user",
-                "content": "Reply with only the word Connected."
-            }
-        ],
-        max_tokens=10,
+            model="openai/gpt-4o-mini",
+            messages=[
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            max_tokens=500,  # Increase from 10 to allow reasonable responses
         )
-
         return response.choices[0].message.content
+
+    def extract_claim(self, text: str) -> str:
+        """Extract the primary factual claim from text."""
+        prompt = f"""Extract the primary factual claim from the following text.
+        
+        Requirements:
+        - Remove emojis, hashtags, mentions (@username), and URLs
+        - Return ONLY the claim (no explanation or metadata)
+        - If no factual claim exists, return exactly: "No factual claim found."
+        
+        Text:
+        {text}
+        """
+        return self.chat(prompt)
