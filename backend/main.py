@@ -2,6 +2,9 @@ from typing import List, Optional
 
 from fastapi import FastAPI
 from pydantic import BaseModel, Field, HttpUrl
+from services import VerificationService
+
+verification_service = VerificationService()
 
 app = FastAPI(
     title="ClaimCheck API",
@@ -44,12 +47,5 @@ def health_check():
 
 @app.post("/verify", response_model=VerifyResponse)
 def verify_claim(request: VerifyRequest):
-    return VerifyResponse(
-        original_input=request.input,
-        extracted_claim=request.input,
-        verdict="unverified",
-        confidence=0.42,
-        summary="ClaimCheck backend is running. Real verification coming soon.",
-        supporting_sources=[],
-        contradicting_sources=[],
-    )
+    result = verification_service.verify(request.input)
+    return VerifyResponse(**result)
